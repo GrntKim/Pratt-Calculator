@@ -17,10 +17,13 @@ class Parser:
 		self.register_parsing_functions()
 
 	def register_parsing_functions(self):
-		self.prefix_parse_function[TokenType.POSNUM] = self.nud_number
-		self.prefix_parse_function[TokenType.NEGNUM] = self.nud_number
+		self.prefix_parse_function[TokenType.NUMBER] = self.nud_number
 
 		self.prefix_parse_function[TokenType.OPBR] = self.nud_grouping
+
+		# prefix operator +/-
+		self.prefix_parse_function[TokenType.MINUS] = self.nud_prefix_op
+		self.prefix_parse_function[TokenType.PLUS] = self.nud_prefix_op
 
 		self.infix_parse_function[TokenType.PLUS] = self.led_bin_op
 		self.infix_parse_function[TokenType.MINUS] = self.led_bin_op
@@ -44,6 +47,17 @@ class Parser:
 		val = float(self.curToken.text)
 		self.nextToken()
 		return val
+
+	def nud_prefix_op(self):
+		op = self.curToken.kind
+		self.nextToken()
+
+		right = self.parseExpression(30)
+		
+		if op == TokenType.MINUS:
+			return -right
+		else:
+			return right
 
 	def nud_grouping(self):
 		self.nextToken()
@@ -71,6 +85,8 @@ class Parser:
 		return left
 
 	def parseExpression(self, precedence):
+		if self.curToken.kind not in self.prefix_parse_function:
+			print(f"Parsing Error: Unexpected token {self.curToken.kind}")
 		prefix_fn = self.prefix_parse_function[self.curToken.kind]
 		left = prefix_fn()
 		while precedence < self.get_precedence(self.curToken.kind):

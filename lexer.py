@@ -44,19 +44,16 @@ class Lexer:
 	def getToken(self):
 		self.skipWhitespace()
 		token = None
-		minusSign = False
 
-		if self.curChar == '-':
-			if not self.peek().isdigit():
-				token = Token(self.curChar, TokenType.MINUS)
-				self.nextChar()
-				self.skipWhitespace()
-				return token
-			else: 
-				minusSign = True
-				self.nextChar()
-
-		if self.curChar.isdigit():
+		if self.curChar == '+':
+			token = Token(self.curChar, TokenType.PLUS)
+		elif self.curChar == '-':
+			token = Token(self.curChar, TokenType.MINUS)
+		elif self.curChar == '*':
+			token = Token(self.curChar, TokenType.TIMES)
+		elif self.curChar == '/':
+			token = Token(self.curChar, TokenType.DIVIDE)
+		elif self.curChar.isdigit():
 			startPos = self.curPos
 			while self.peek().isdigit():
 				self.nextChar()
@@ -66,20 +63,7 @@ class Lexer:
 					self.abort("Illegal character in number.")
 				while self.peek().isdigit():
 					self.nextChar()
-			number = self.src[startPos : self.curPos+1]
-			if minusSign: 
-				token = Token('-' + number, TokenType.NEGNUM)
-			else:
-				token = Token(number, TokenType.POSNUM)
-			self.nextChar()
-			return token
-				
-		if self.curChar == '+':
-			token = Token(self.curChar, TokenType.PLUS)
-		elif self.curChar == '*':
-			token = Token(self.curChar, TokenType.TIMES)
-		elif self.curChar == '/':
-			token = Token(self.curChar, TokenType.DIVIDE)
+			token = Token(self.src[startPos : self.curPos+1], TokenType.NUMBER)
 		elif self.curChar == '(':
 			token = Token(self.curChar, TokenType.OPBR)
 		elif self.curChar == ')':
@@ -108,8 +92,7 @@ class Token:
 class TokenType(enum.Enum):
 	EOF = enum.auto()
 	NEWLINE = enum.auto()
-	POSNUM = enum.auto()
-	NEGNUM = enum.auto()
+	NUMBER = enum.auto()
 	OPBR = enum.auto()
 	CLBR = enum.auto()
 	PLUS = enum.auto()
